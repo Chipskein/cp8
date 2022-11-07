@@ -5,29 +5,14 @@ import (
 )
 
 type CPU struct {
-	rom_size uint16
-	Stack    [16]uint16
-	// (0x200 or 0x600)-0XFFF avaliable Memory for run programms
-	// 0X000 - 0x1FF avaliable for chip8 interpreter
-	Memory [0xFFF]uint8
-	V0     uint8
-	V1     uint8
-	V2     uint8
-	V3     uint8
-	V4     uint8
-	V5     uint8
-	V6     uint8
-	V7     uint8
-	V9     uint8
-	VA     uint8
-	VB     uint8
-	VC     uint8
-	VD     uint8
-	VE     uint8
-	VF     uint8  //is used only as a flag for some instructions
-	I      uint16 //used as memory index store
-	SP     uint8  //stack pointer
-	PC     uint16 //pc counter
+	rom_size   uint16
+	Stack      [16]uint16 // (0x200 or 0x600)-0XFFF avaliable Memory for run programms ; 0X000 - 0x1FF avaliable for chip8 interpreter
+	Memory     [0xFFF]uint8
+	V          [0xF]uint8 //Registers V0-VF
+	I          uint16     //used as memory index store
+	SP         uint8      //stack pointer
+	PC         uint16     //pc counter
+	debug_flag bool
 }
 
 func (c *CPU) loadFontData() {
@@ -55,6 +40,10 @@ func (c *CPU) loadFontData() {
 		memAddress++
 	}
 }
+func (c *CPU) ShowLastState(opcode uint16) {
+	s := fmt.Sprintf("OPCODE:'%X'\nPC-2_ADDR:%X\nPC-1_ADDR:%X\nPC_ADDR:%X\nROM_SIZE:%d\nMEM_INDEX:%X\nREGISTERS:%v\nSTACK:%v\n", opcode, (c.PC - 2), (c.PC - 1), c.PC, c.rom_size, c.I, c.V, c.Stack)
+	fmt.Println(s)
+}
 func (c *CPU) fetch() uint16 {
 	var addr1 = c.Memory[c.PC]
 	var addr2 = c.Memory[c.PC+1]
@@ -63,8 +52,6 @@ func (c *CPU) fetch() uint16 {
 	return opcode
 }
 func (c *CPU) decode(opcode uint16) {
-	h := fmt.Sprintf("%X", opcode)
-	fmt.Printf("Opcode:'%s'\n", h)
 }
 func (c *CPU) execute() {
 }
@@ -72,6 +59,9 @@ func (c *CPU) cycle() {
 	var opcode = c.fetch()
 	c.decode(opcode)
 	c.execute()
+	if c.debug_flag {
+		c.ShowLastState(opcode)
+	}
 }
 func (c *CPU) loadROM(rom []byte) {
 	c.rom_size = uint16(len(rom))
@@ -85,14 +75,14 @@ func (c *CPU) run() {
 		if c.PC <= (c.rom_size)+0x200 {
 			c.cycle()
 		}
-		if c.PC > c.rom_size+0x200 {
+		if c.rom_size+0x200 < c.PC {
 			fmt.Println("Program has ended")
 			break
 		}
 	}
 }
 func Init(rom []byte) {
-	var cpu = &CPU{}
+	var cpu = &CPU{debug_flag: true}
 	cpu.loadFontData()
 	cpu.loadROM(rom)
 	cpu.run()
