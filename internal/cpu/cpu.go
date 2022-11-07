@@ -54,6 +54,7 @@ func (c *CPU) fetch() uint16 {
 func (c *CPU) decode(opcode uint16) {
 }
 func (c *CPU) execute() {
+
 }
 func (c *CPU) cycle() {
 	var opcode = c.fetch()
