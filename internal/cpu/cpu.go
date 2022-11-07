@@ -1,18 +1,13 @@
 package cpu
 
-import (
-	"fmt"
-)
-
 type CPU struct {
-	rom_size   uint16
-	Stack      [16]uint16 // (0x200 or 0x600)-0XFFF avaliable Memory for run programms ; 0X000 - 0x1FF avaliable for chip8 interpreter
-	Memory     [0xFFF]uint8
-	V          [0xF]uint8 //Registers V0-VF
-	I          uint16     //used as memory index store
-	SP         uint8      //stack pointer
-	PC         uint16     //pc counter
-	debug_flag bool
+	rom_size uint16
+	Stack    [16]uint16 // (0x200 or 0x600)-0XFFF avaliable Memory for run programms ; 0X000 - 0x1FF avaliable for chip8 interpreter
+	Memory   [0xFFF]uint8
+	V        [0xF]uint8 //Registers V0-VF
+	I        uint16     //used as memory index store
+	SP       uint8      //stack pointer
+	PC       uint16     //pc counter
 }
 
 func (c *CPU) loadFontData() {
@@ -40,10 +35,6 @@ func (c *CPU) loadFontData() {
 		memAddress++
 	}
 }
-func (c *CPU) ShowLastState(opcode uint16) {
-	s := fmt.Sprintf("OPCODE:'%X'\nPC-2_ADDR:%X\nPC-1_ADDR:%X\nPC_ADDR:%X\nROM_SIZE:%d\nMEM_INDEX:%X\nREGISTERS:%v\nSTACK:%v\n", opcode, (c.PC - 2), (c.PC - 1), c.PC, c.rom_size, c.I, c.V, c.Stack)
-	fmt.Println(s)
-}
 func (c *CPU) fetch() uint16 {
 	var addr1 = c.Memory[c.PC]
 	var addr2 = c.Memory[c.PC+1]
@@ -60,9 +51,6 @@ func (c *CPU) cycle() {
 	var opcode = c.fetch()
 	c.decode(opcode)
 	c.execute()
-	if c.debug_flag {
-		c.ShowLastState(opcode)
-	}
 }
 func (c *CPU) loadROM(rom []byte) {
 	c.rom_size = uint16(len(rom))
@@ -77,13 +65,12 @@ func (c *CPU) run() {
 			c.cycle()
 		}
 		if c.rom_size+0x200 < c.PC {
-			fmt.Println("Program has ended")
 			break
 		}
 	}
 }
 func Init(rom []byte) {
-	var cpu = &CPU{debug_flag: true}
+	var cpu = &CPU{}
 	cpu.loadFontData()
 	cpu.loadROM(rom)
 	cpu.run()
