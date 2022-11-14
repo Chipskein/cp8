@@ -1,16 +1,16 @@
-package cpu
+package cpu_test
 
 import (
+	"chip8/internal/cpu"
 	"fmt"
 	"io/ioutil"
-
 	"testing"
 )
 
 var files []string
 
 func init() {
-	const assets_path = "./assets/roms"
+	const assets_path = "../__test_roms__"
 	dir, _ := ioutil.ReadDir(assets_path)
 	for _, file := range dir {
 		s := fmt.Sprintf("%s/%s", assets_path, file.Name())
@@ -26,6 +26,6 @@ func TestCPUInit(t *testing.T) {
 			fmt.Printf("Fail to read ROM :%s\n", rom_path)
 		}
 		fmt.Printf("Loaded ROM :%s\nRom Size:%d Bytes\n", rom_path, uint16(len(data)))
-		Init(data)
+		cpu.Init(data)
 	}
 }
