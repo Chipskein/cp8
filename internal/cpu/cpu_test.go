@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"chip8/internal/cpu"
 	"fmt"
 	"io/ioutil"
 
@@ -27,6 +26,6 @@ func TestCPUInit(t *testing.T) {
 			fmt.Printf("Fail to read ROM :%s\n", rom_path)
 		}
 		fmt.Printf("Loaded ROM :%s\nRom Size:%d Bytes\n", rom_path, uint16(len(data)))
-		cpu.Init(data)
+		Init(data)
 	}
 }
