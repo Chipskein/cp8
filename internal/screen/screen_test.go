@@ -5,10 +5,7 @@ import (
 	"testing"
 )
 
-func init() {
-
-}
-
-func TestCPUInit(t *testing.T) {
-	screen.Initialzing()
+func TestInit(t *testing.T) {
+	t.Log("Eaimna")
+	screen.Init()
 }
