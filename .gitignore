@@ -1,2 +1,4 @@
+tmp/*
 bin/*
 !bin/.gitkeep
+
