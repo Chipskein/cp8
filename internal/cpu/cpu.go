@@ -85,7 +85,9 @@ func (c *CPU) decodeExec(inst *instruction) {
 	case 0x0000:
 		switch kk {
 		case 0x00E0: // clear the screen
-			log.Printf("Clear the screen\n")
+			for i := range c.display {
+				c.display[i] = false
+			}
 			//c.PC += 2
 			break
 		case 0x00EE: // ret
@@ -226,9 +228,55 @@ func (c *CPU) decodeExec(inst *instruction) {
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
 		log.Printf("Draw sprite at (V[0x%x], V[0x%x]) = (0x%x, 0x%x) of height %d", x, y, c.V[x], c.V[y], n)
-		//draw_sprite(V[x], V[y], n);
-		//PC += 2;
-		//chip8_draw_flag = true;
+		var x_coord = c.V[x] % 64
+		var y_coord = c.V[y] % 32
+		var original_x = x_coord
+		c.V[0xF] = 0
+		var i uint8 = 0
+		for i < n {
+			var sprite_data = c.Memory[uint8(c.I)+i]
+			var j uint8 = 7
+			for j > 0 {
+				x_coord = original_x
+				var pixel = &c.display[y_coord*64+x_coord]
+				var pixel_set_uint8 uint8
+
+				if *pixel {
+					pixel_set_uint8 = 1
+				} else {
+					pixel_set_uint8 = 0
+				}
+
+				var sprite_bit uint8 = sprite_data & (1 << j)
+				var bitset bool
+				if sprite_bit == 1 {
+					bitset = true
+				} else {
+					bitset = false
+				}
+				if bitset && *pixel {
+					c.V[0xF] = 1
+				}
+				pixel_set_uint8 ^= sprite_bit
+
+				if pixel_set_uint8 == 1 {
+					*pixel = true
+				} else {
+					*pixel = false
+				}
+				if (x_coord + 1) >= 64 {
+					break
+				}
+				j--
+
+			}
+
+			if (y_coord + 1) >= 32 {
+				break
+			}
+
+			i++
+		}
 		break
 	case 0xE000: // key-pressed events
 		switch kk {
@@ -318,14 +366,10 @@ func (c *CPU) loadROM(rom []byte) {
 	c.PC = 0x200
 }
 func (c *CPU) run() {
-	window, renderer, err := screen.InitSDL()
+	renderer, err := screen.InitSDL()
 	if err != nil {
 		panic(err)
 	}
-	defer renderer.Destroy()
-	defer window.Destroy()
-	defer sdl.Quit()
-
 	c.status = enum.Running
 	for c.status != enum.Stop {
 		if c.PC <= (c.rom_size)+0x200 {
@@ -333,12 +377,10 @@ func (c *CPU) run() {
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				screen.HandleSDLEvents(event, &c.status)
 			}
-			renderer.SetDrawColor(0, 0, 0, 255)
-			renderer.Clear()
-			renderer.Present()
-
+			screen.Update(renderer, &c.display)
+			sdl.Delay(16)
 		}
-		sdl.Delay(100)
+
 	}
 }
 func Init(rom []byte) {

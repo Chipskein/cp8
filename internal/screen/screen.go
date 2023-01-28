@@ -7,20 +7,38 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func InitSDL() (window *sdl.Window, renderer *sdl.Renderer, err error) {
+func InitSDL() (renderer *sdl.Renderer, err error) {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	window, err = sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 640, 320, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 64, 32, sdl.WINDOW_SHOWN)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
+	return renderer, nil
+}
+func Update(renderer *sdl.Renderer, display *[64 * 32]bool) {
+	renderer.Clear()
+	for pixel_index, pixel_set := range display {
+		if pixel_set {
+			renderer.SetDrawColor(255, 255, 255, 255)
+		} else {
+			renderer.SetDrawColor(0, 0, 0, 255)
+		}
+		rect := &sdl.FRect{W: 1, H: 1}
+		rect.X = float32(pixel_index%64) * 1
+		rect.Y = float32(pixel_index/64) * 1
+		renderer.FillRectF(rect)
+		renderer.DrawRectF(rect)
+	}
+	renderer.Present()
+}
+func Draw_Sprite(display *[64 * 32]bool) {
 
-	return window, renderer, nil
 }
 func HandleSDLEvents(event sdl.Event, state *enum.Machine_state) {
 	switch t := event.(type) {
