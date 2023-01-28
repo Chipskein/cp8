@@ -9,19 +9,28 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type instruction struct {
+	opcode uint16
+	nnn    uint16
+	kk     uint8
+	n      uint8
+	x      uint8
+	y      uint8
+}
 type CPU struct {
-	rom_path    string
-	status      enum.Machine_state
-	rom_size    uint16
-	Stack       [16]uint16 // (0x200 or 0x600)-0XFFF avaliable Memory for run programms ; 0X000 - 0x1FF avaliable for chip8 interpreter
-	Memory      [0xFFF]uint8
-	V           [0xF + 1]uint8 //Registers V0-VF
-	I           uint16         //used as memory index store
-	SP          uint8          //stack pointer
-	PC          uint16         //pc counter
-	delay_timer uint8
-	sound_timer uint8
-	display     [64 * 32]bool
+	rom_path            string
+	status              enum.Machine_state
+	rom_size            uint16
+	Stack               [16]uint16 // (0x200 or 0x600)-0XFFF avaliable Memory for run programms ; 0X000 - 0x1FF avaliable for chip8 interpreter
+	Memory              [0xFFF]uint8
+	V                   [0xF + 1]uint8 //Registers V0-VF
+	I                   uint16         //used as memory index store
+	SP                  uint8          //stack pointer
+	PC                  uint16         //pc counter
+	delay_timer         uint8
+	sound_timer         uint8
+	display             [64 * 32]bool
+	current_instruction *instruction
 }
 
 func (c *CPU) loadFontData() {
@@ -49,20 +58,29 @@ func (c *CPU) loadFontData() {
 		memAddress++
 	}
 }
-func (c *CPU) fetch() (opcode uint16, x uint8, y uint8, n uint8, kk uint8, nnn uint16) {
+func (c *CPU) fetch() *instruction {
 	var addr1 = c.Memory[c.PC]
 	var addr2 = c.Memory[c.PC+1]
 	c.PC += 2
-	opcode = uint16(addr1)<<8 | uint16(addr2)
-	x = uint8((opcode >> 8) & 0x000F) // the lower 4 bits of the high byte
-	y = uint8((opcode >> 4) & 0x000F) // the upper 4 bits of the low byte
-	n = uint8(opcode & 0x000F)        // the lowest 4 bits
-	kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
-	nnn = opcode & 0x0FFF             // the lowest 12 bits
-	return opcode, x, y, n, kk, nnn
+	var opcode = uint16(addr1)<<8 | uint16(addr2)
+	var x = uint8((opcode >> 8) & 0x000F) // the lower 4 bits of the high byte
+	var y = uint8((opcode >> 4) & 0x000F) // the upper 4 bits of the low byte
+	var n = uint8(opcode & 0x000F)        // the lowest 4 bits
+	var kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
+	var nnn = opcode & 0x0FFF             // the lowest 12 bits
+	return &instruction{opcode: opcode, x: x, y: y, n: n, kk: kk, nnn: nnn}
 }
-func (c *CPU) decodeExec(opcode uint16, x uint8, y uint8, n uint8, kk uint8, nnn uint16) {
-	log.Printf("Opcode:%x\n x:%x\n y:%x\n n:%x\n kk:%x\n nnn:%x\n", opcode, x, y, n, kk, nnn)
+func (c *CPU) decodeExec(inst *instruction) {
+	if c.status == enum.Debug {
+		log.Printf("CURRENT_INSTRUCTION:%+v\n", inst)
+	}
+	var opcode = inst.opcode
+	var x = inst.x
+	var y = inst.y
+	var n = inst.n
+	var kk = inst.kk
+	var nnn = inst.nnn
+
 	switch opcode & 0xF000 {
 	case 0x0000:
 		switch kk {
@@ -282,12 +300,14 @@ func (c *CPU) decodeExec(opcode uint16, x uint8, y uint8, n uint8, kk uint8, nnn
 		}
 		break
 	}
+
 }
 
 func (c *CPU) cycle() {
 	if c.status != enum.Paused {
-		opcode, x, y, n, kk, nnn := c.fetch()
-		c.decodeExec(opcode, x, y, n, kk, nnn)
+		insc := c.fetch()
+		c.current_instruction = insc
+		c.decodeExec(insc)
 	}
 }
 func (c *CPU) loadROM(rom []byte) {
@@ -318,7 +338,7 @@ func (c *CPU) run() {
 			renderer.Present()
 
 		}
-		sdl.Delay(17)
+		sdl.Delay(100)
 	}
 }
 func Init(rom []byte) {
