@@ -1,13 +1,28 @@
 package keyboard
 
 import (
+	"chip8/internal/enum"
 	"log"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func HandleSDLInputKeys(keyCode sdl.Keycode) {
+func HandleSDLInputKeys(keyCode sdl.Keycode, state *enum.Machine_state) {
 	switch keyCode {
+
+	case 27:
+		//esc
+		*state = enum.Stop
+		break
+	case 32:
+		//space
+		if *state == enum.Paused {
+			*state = enum.Running
+			return
+		}
+		*state = enum.Paused
+		log.Printf("Machine Paused")
+		break
 	case 48:
 		//0
 		log.Printf("Key 0 Pressed %d\n", keyCode)

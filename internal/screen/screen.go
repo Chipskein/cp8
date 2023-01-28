@@ -28,7 +28,9 @@ func HandleSDLEvents(event sdl.Event, state *enum.Machine_state) {
 		*state = enum.Stop
 		break
 	case sdl.KeyboardEvent:
-		keyboard.HandleSDLInputKeys(t.Keysym.Sym)
+		if t.GetType() == sdl.KEYDOWN {
+			keyboard.HandleSDLInputKeys(t.Keysym.Sym, state)
+		}
 		break
 	}
 }

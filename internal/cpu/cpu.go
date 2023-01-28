@@ -5,7 +5,6 @@ import (
 	"chip8/internal/screen"
 	"log"
 	"math/rand"
-	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -286,9 +285,10 @@ func (c *CPU) decodeExec(opcode uint16, x uint8, y uint8, n uint8, kk uint8, nnn
 }
 
 func (c *CPU) cycle() {
-	opcode, x, y, n, kk, nnn := c.fetch()
-	c.decodeExec(opcode, x, y, n, kk, nnn)
-
+	if c.status != enum.Paused {
+		opcode, x, y, n, kk, nnn := c.fetch()
+		c.decodeExec(opcode, x, y, n, kk, nnn)
+	}
 }
 func (c *CPU) loadROM(rom []byte) {
 	c.rom_size = uint16(len(rom))
@@ -307,7 +307,7 @@ func (c *CPU) run() {
 	defer sdl.Quit()
 
 	c.status = enum.Running
-	for c.status == enum.Running {
+	for c.status != enum.Stop {
 		if c.PC <= (c.rom_size)+0x200 {
 			c.cycle()
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -316,9 +316,9 @@ func (c *CPU) run() {
 			renderer.SetDrawColor(0, 0, 0, 255)
 			renderer.Clear()
 			renderer.Present()
-			sdl.Delay(17)
-			time.Sleep(time.Millisecond * 17)
+
 		}
+		sdl.Delay(17)
 	}
 }
 func Init(rom []byte) {
