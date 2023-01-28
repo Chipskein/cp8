@@ -71,9 +71,6 @@ func (c *CPU) fetch() *instruction {
 	return &instruction{opcode: opcode, x: x, y: y, n: n, kk: kk, nnn: nnn}
 }
 func (c *CPU) decodeExec(inst *instruction) {
-	if c.status == enum.Debug {
-		log.Printf("CURRENT_INSTRUCTION:%+v\n", inst)
-	}
 	var opcode = inst.opcode
 	var x = inst.x
 	var y = inst.y

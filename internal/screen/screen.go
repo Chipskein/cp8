@@ -11,7 +11,7 @@ func InitSDL() (renderer *sdl.Renderer, err error) {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		return nil, err
 	}
-	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 64, 32, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 640, 320, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return nil, err
 	}
@@ -29,16 +29,13 @@ func Update(renderer *sdl.Renderer, display *[64 * 32]bool) {
 		} else {
 			renderer.SetDrawColor(0, 0, 0, 255)
 		}
-		rect := &sdl.FRect{W: 1, H: 1}
-		rect.X = float32(pixel_index%64) * 1
-		rect.Y = float32(pixel_index/64) * 1
+		rect := &sdl.FRect{W: 10, H: 10}
+		rect.X = float32(pixel_index%640) * 10
+		rect.Y = float32(pixel_index/640) * 10
 		renderer.FillRectF(rect)
 		renderer.DrawRectF(rect)
 	}
 	renderer.Present()
-}
-func Draw_Sprite(display *[64 * 32]bool) {
-
 }
 func HandleSDLEvents(event sdl.Event, state *enum.Machine_state) {
 	switch t := event.(type) {
