@@ -1,38 +1,42 @@
 package main
 
 import (
-	"log"
+	"chip8/internal/keyboard"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func main() {
+func initSDL() (window *sdl.Window, err error) {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		panic(err)
+		return nil, err
 	}
-	defer sdl.Quit()
+	window, err = sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 400, 400, sdl.WINDOW_SHOWN)
+	if err != nil {
+		return nil, err
+	}
+	return window, nil
 
-	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 400, 400, sdl.WINDOW_SHOWN)
+}
+func handleSDLEvents(event sdl.Event, running *bool) {
+	switch t := event.(type) {
+	case sdl.QuitEvent:
+		*running = false
+		break
+	case sdl.KeyboardEvent:
+		keyboard.HandleSDLInputKeys(t.Keysym.Sym)
+		break
+	}
+}
+func main() {
+	window, err := initSDL()
 	if err != nil {
 		panic(err)
 	}
 	defer window.Destroy()
-
 	running := true
 	for running {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-
-			switch t := event.(type) {
-			case sdl.QuitEvent:
-				running = false
-				break
-			case sdl.KeyboardEvent:
-				keyCode := t.Keysym.Sym
-				log.Printf("%d\n", keyCode)
-				break
-			}
-
+			handleSDLEvents(event, &running)
 		}
-
 	}
 }
