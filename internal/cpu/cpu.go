@@ -1,12 +1,18 @@
 package cpu
 
 import (
+	"chip8/internal/enum"
+	"chip8/internal/screen"
 	"log"
 	"math/rand"
 	"time"
+
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type CPU struct {
+	rom_path    string
+	status      enum.Machine_state
 	rom_size    uint16
 	Stack       [16]uint16 // (0x200 or 0x600)-0XFFF avaliable Memory for run programms ; 0X000 - 0x1FF avaliable for chip8 interpreter
 	Memory      [0xFFF]uint8
@@ -16,6 +22,7 @@ type CPU struct {
 	PC          uint16         //pc counter
 	delay_timer uint8
 	sound_timer uint8
+	display     [64 * 32]bool
 }
 
 func (c *CPU) loadFontData() {
@@ -281,6 +288,7 @@ func (c *CPU) decodeExec(opcode uint16, x uint8, y uint8, n uint8, kk uint8, nnn
 func (c *CPU) cycle() {
 	opcode, x, y, n, kk, nnn := c.fetch()
 	c.decodeExec(opcode, x, y, n, kk, nnn)
+
 }
 func (c *CPU) loadROM(rom []byte) {
 	c.rom_size = uint16(len(rom))
@@ -290,13 +298,26 @@ func (c *CPU) loadROM(rom []byte) {
 	c.PC = 0x200
 }
 func (c *CPU) run() {
-	for {
+	window, renderer, err := screen.InitSDL()
+	if err != nil {
+		panic(err)
+	}
+	defer renderer.Destroy()
+	defer window.Destroy()
+	defer sdl.Quit()
+
+	c.status = enum.Running
+	for c.status == enum.Running {
 		if c.PC <= (c.rom_size)+0x200 {
 			c.cycle()
-			time.Sleep(time.Millisecond * 500)
-		}
-		if c.rom_size+0x200 < c.PC {
-			break
+			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+				screen.HandleSDLEvents(event, &c.status)
+			}
+			renderer.SetDrawColor(0, 0, 0, 255)
+			renderer.Clear()
+			renderer.Present()
+			sdl.Delay(17)
+			time.Sleep(time.Millisecond * 17)
 		}
 	}
 }
