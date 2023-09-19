@@ -85,7 +85,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 			for i := range c.display {
 				c.display[i] = false
 			}
-			//c.PC += 2
+			c.PC += 2
 			break
 		case 0x00EE: // ret
 			log.Printf("return\n")
@@ -111,7 +111,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 			c.PC += 2
 			break
 		}
-		//c.PC += 2
+		c.PC += 2
 		break
 	case 0x4000: // 4xkk: skip next instr if V[x] != kk
 		log.Printf("Skip next instruction if 0x%x != 0x%x\n", c.V[x], kk)
@@ -119,7 +119,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 			c.PC += 2
 			break
 		}
-		//c.PC += 2
+		c.PC += 2
 		break
 	case 0x5000: // 5xy0: skip next instr if V[x] == V[y]
 		log.Printf("Skip next instruction if 0x%x == 0x%x\n", c.V[x], c.V[y])
@@ -127,17 +127,17 @@ func (c *CPU) decodeExec(inst *instruction) {
 			c.PC += 2
 			break
 		}
-		//c.PC += 2
+		c.PC += 2
 		break
 	case 0x6000: // 6xkk: set V[x] = kk
 		log.Printf("Set V[0x%x] to 0x%x\n", x, kk)
 		c.V[x] = kk
-		//c.PC += 2
+		c.PC += 2
 		break
 	case 0x7000: // 7xkk: set V[x] = V[x] + kk
 		log.Printf("Set V[0x%d] to V[0x%d] + 0x%x\n", x, x, kk)
 		c.V[x] += kk
-		//c.PC += 2
+		c.PC += 2
 		break
 	case 0x8000: // 8xyn: Arithmetic stuff
 		switch n {
@@ -195,7 +195,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 			c.V[x] = (c.V[x] << 1)
 			break
 		}
-		//PC += 2;
+		c.PC += 2
 		break
 	case 0x9000: // 9xy0: skip instruction if Vx != Vy
 		switch n {
@@ -211,7 +211,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 	case 0xA000: // Annn: set I to address nnn
 		log.Printf("Set I to 0x%x\n", nnn)
 		c.I = nnn
-		//PC += 2;
+		c.PC += 2
 		break
 	case 0xB000: // Bnnn: jump to location nnn + V[0]
 		log.Printf("Jump to 0x%x + V[0] (0x%x)\n", nnn, c.V[0])
@@ -220,7 +220,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 	case 0xC000: // Cxkk: V[x] = random byte AND kk
 		log.Printf("V[0x%x] = random byte\n", x)
 		c.V[x] = uint8(rand.Uint64()%256) & kk
-		//PC += 2;
+		c.PC += 2
 		break
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
@@ -293,11 +293,11 @@ func (c *CPU) decodeExec(inst *instruction) {
 		case 0x07:
 			log.Printf("V[0x%x] = delay timer = %d\n", x, c.delay_timer)
 			c.V[x] = c.delay_timer
-			//PC += 2;
+			c.PC += 2
 			break
 		case 0x0A:
-			//printf("Wait for key instruction\n")
-			//PC += 2;
+			log.Printf("Wait for key instruction\n")
+			c.PC += 2
 			break
 		case 0x15:
 			log.Printf("delay timer = V[0x%x] = %d\n", x, c.V[x])
@@ -306,7 +306,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 		case 0x18:
 			log.Printf("sound timer = V[0x%x] = %d\n", x, c.V[x])
 			c.sound_timer = c.V[x]
-			//PC += 2;
+			c.PC += 2
 			break
 		case 0x1E:
 			log.Printf("I = I + V[0x%x] = 0x%x + 0x%x\n", x, c.I, c.V[x])
@@ -316,7 +316,7 @@ func (c *CPU) decodeExec(inst *instruction) {
 				c.V[0xF] = 0
 			}
 			c.I = c.I + uint16(c.V[x])
-			//PC += 2;
+			c.PC += 2
 			break
 		case 0x29:
 			log.Printf("I = location of font for character V[0x%x] = 0x%x\n", x, c.V[x])
@@ -327,20 +327,23 @@ func (c *CPU) decodeExec(inst *instruction) {
 			c.Memory[c.I] = uint8((uint16(c.V[x]) % 1000) / 100) // hundred's digit
 			c.Memory[c.I+1] = (c.V[x] % 100) / 10                // ten's digit
 			c.Memory[c.I+2] = (c.V[x] % 10)                      // one's digit
-			//PC += 2;
+			c.PC += 2
 			break
 		case 0x55:
 			log.Printf("Copy sprite from registers 0 to 0x%x into memory at address 0x%x\n", x, c.I)
-			//for(i = 0; i <= x; i++) {
-			//	c.Memory[c.I + i] = c.V[i];
-			//}
+
+			for i := 0; i <= int(x); i++ {
+				c.Memory[c.I+uint16(i)] = c.V[i]
+			}
 			c.I += uint16(x) + 1
 			break
 		case 0x65:
 			log.Printf("Copy sprite from memory at address 0x%x into registers 0 to 0x%x\n", x, c.I)
-			//for(i = 0; i <= x; i++) { c.V[i] = c.Memory[c.I + i]; }
+			for i := 0; i <= int(x); i++ {
+				c.V[i] = c.Memory[c.I+uint16(i)]
+			}
 			c.I += uint16(x) + 1
-			//PC += 2;
+			c.PC += 2
 			break
 		}
 		break
@@ -375,7 +378,7 @@ func (c *CPU) run() {
 				screen.HandleSDLEvents(event, &c.status)
 			}
 			screen.Update(renderer, &c.display)
-			sdl.Delay(16)
+			sdl.Delay(100)
 		}
 
 	}

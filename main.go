@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-
 	var rom_path = "./internal/__test_roms__/IBM_Logo.ch8"
 	data, err := ioutil.ReadFile(rom_path)
 	if err != nil {

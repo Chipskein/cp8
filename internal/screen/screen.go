@@ -11,7 +11,7 @@ func InitSDL() (renderer *sdl.Renderer, err error) {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		return nil, err
 	}
-	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 640, 320, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 64, 32, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +41,9 @@ func HandleSDLEvents(event sdl.Event, state *enum.Machine_state) {
 	switch t := event.(type) {
 	case sdl.QuitEvent:
 		*state = enum.Stop
-		break
 	case sdl.KeyboardEvent:
 		if t.GetType() == sdl.KEYDOWN {
 			keyboard.HandleSDLInputKeys(t.Keysym.Sym, state)
 		}
-		break
 	}
 }
