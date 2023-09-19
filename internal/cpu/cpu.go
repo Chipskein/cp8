@@ -172,14 +172,11 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		}
 		c.PC += 2
 	case 0x9000: // 9xy0: skip instruction if Vx != Vy
-		switch n {
-		case 0x0:
-			log.Printf("Skip next instruction if 0x%x != 0x%x\n", c.V[x], c.V[y])
-			if c.V[x] != c.V[y] {
-				c.PC += 2
-				break
-			}
+		if c.V[x] != c.V[y] {
+			c.PC += 2
+			break
 		}
+		c.PC += 2
 	case 0xA000: // Annn: set I to address nnn
 		log.Printf("Set I to 0x%x\n", nnn)
 		c.I = nnn
