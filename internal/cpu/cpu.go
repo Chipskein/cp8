@@ -112,18 +112,15 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		}
 		c.PC += 2
 	case 0x5000: // 5xy0: skip next instr if V[x] == V[y]
-		log.Printf("Skip next instruction if 0x%x == 0x%x\n", c.V[x], c.V[y])
 		if c.V[x] == c.V[y] {
 			c.PC += 2
 			break
 		}
 		c.PC += 2
 	case 0x6000: // 6xkk: set V[x] = kk
-		log.Printf("Set V[0x%x] to 0x%x\n", x, kk)
 		c.V[x] = kk
 		c.PC += 2
 	case 0x7000: // 7xkk: set V[x] = V[x] + kk
-		log.Printf("Set V[0x%d] to V[0x%d] + 0x%x\n", x, x, kk)
 		c.V[x] += kk
 		c.PC += 2
 	case 0x8000: // 8xyn: Arithmetic stuff

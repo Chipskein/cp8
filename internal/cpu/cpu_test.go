@@ -60,7 +60,7 @@ func TestInstruction_0x3xkk_SkipIfTrue(t *testing.T) {
 	var c2 = &chip8_cpu.CPU{}
 	var inst2 = &chip8_cpu.Instruction{Opcode: 0x3000, X: 0xF, Kk: 12}
 	c2.DecodeExec(inst2)
-	if c.PC != 2 {
+	if c2.PC != 2 {
 		t.Failed()
 	}
 }
@@ -75,7 +75,45 @@ func TestInstruction_0x4xkk_SkipIfFalse(t *testing.T) {
 	var inst2 = &chip8_cpu.Instruction{Opcode: 0x4000, X: 0xF, Kk: 12}
 	c2.V[inst.X] = inst2.Kk
 	c2.DecodeExec(inst2)
-	if c.PC != 2 {
+	if c2.PC != 2 {
+		t.Failed()
+	}
+}
+func TestInstruction_0x5xy0_SkipIfTrue(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x5000, X: 0xF, Y: 0xA}
+	c.V[inst.X] = 0x9
+	c.V[inst.X] = c.V[inst.Y]
+	c.DecodeExec(inst)
+	if c.PC != 4 {
+		t.Failed()
+	}
+
+	var c2 = &chip8_cpu.CPU{}
+	var inst2 = &chip8_cpu.Instruction{Opcode: 0x5000, X: 0xF, Y: 0xA}
+	c2.V[inst2.X] = 0x9
+	c2.V[inst2.X] = 0xA
+	c2.DecodeExec(inst2)
+	if c2.PC != 2 {
+		t.Failed()
+	}
+}
+
+func TestInstruction_0x6xkk_SetRegisterXtoKK(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x6000, X: 0xF, Kk: 0xA}
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[inst.X] != inst.Kk {
+		t.Failed()
+	}
+}
+func TestInstruction_0x7xkk_IncrementRegisterXWithKK(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x7000, X: 0xF, Kk: 0xA}
+	var register_value_before = 0x1
+	c.V[inst.X] = uint8(register_value_before)
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[inst.X] != uint8(register_value_before)+inst.Kk {
 		t.Failed()
 	}
 }
