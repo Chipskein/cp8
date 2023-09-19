@@ -100,7 +100,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.SP++
 		c.PC = nnn
 	case 0x3000: // 3xkk: skip next instr if V[x] = kk
-		log.Printf("Skip next instruction if 0x%x == 0x%x\n", c.V[x], kk)
 		if c.V[x] == kk {
 			c.PC += 2
 			break

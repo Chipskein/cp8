@@ -47,3 +47,20 @@ func TestInstruction_0x2000_CallAddressNNN(t *testing.T) {
 		t.Failed()
 	}
 }
+
+func TestInstruction_0x3xkk_SkipIfTrue(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x3000, X: 0xF, Kk: 12}
+	c.V[inst.X] = inst.Kk
+	c.DecodeExec(inst)
+	if c.PC != 4 {
+		t.Failed()
+	}
+
+	var c2 = &chip8_cpu.CPU{}
+	var inst2 = &chip8_cpu.Instruction{Opcode: 0x3000, X: 0xF, Kk: 12}
+	c2.DecodeExec(inst2)
+	if c.PC != 2 {
+		t.Failed()
+	}
+}
