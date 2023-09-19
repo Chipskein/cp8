@@ -37,3 +37,13 @@ func TestInstruction_0x1000_JumpToNNN(t *testing.T) {
 		t.Failed()
 	}
 }
+
+func TestInstruction_0x2000_CallAddressNNN(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x2000, Nnn: 0x3C}
+	var before = c.PC
+	c.DecodeExec(inst)
+	if c.PC != inst.Nnn || c.SP != 1 || c.Stack[c.SP-1] != (before+2) {
+		t.Failed()
+	}
+}

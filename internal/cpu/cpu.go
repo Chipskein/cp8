@@ -95,7 +95,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0x1000: // 1nnn: jump to address nnn
 		c.PC = nnn
 	case 0x2000: // 2nnn: call address nnn
-		log.Printf("Call address 0x%x\n", nnn)
 		var index = c.SP
 		c.Stack[index] = c.PC + 2
 		c.SP++
