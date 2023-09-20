@@ -117,3 +117,45 @@ func TestInstruction_0x7xkk_IncrementRegisterXWithKK(t *testing.T) {
 		t.Failed()
 	}
 }
+
+/*
+func TestInstruction_0x8xyn_DoNWithXandY(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0xD, Y: 0x1}
+	c.DecodeExec(inst)
+	if c.PC != 2 {
+		t.Failed()
+	}
+}
+*/
+
+func TestInstruction_0x9000_SkipIfXDifferentThanY(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0x9000, X: 0xD, Y: 0x1}
+	c.DecodeExec(inst)
+	if c.PC != 4 {
+		t.Failed()
+	}
+	var c2 = &chip8_cpu.CPU{}
+	var inst2 = &chip8_cpu.Instruction{Opcode: 0x9000, X: 0xD, Y: 0xD}
+	c2.DecodeExec(inst2)
+	if c2.PC != 2 {
+		t.Failed()
+	}
+}
+func TestInstruction_0xAnnn_SetMemoryIndexToNNN(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0xA000, Nnn: 0x204}
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.I != inst.Nnn {
+		t.Failed()
+	}
+}
+func TestInstruction_0xBnnn_SetMemoryIndexToNNN(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0xB000, Nnn: 0x204}
+	c.DecodeExec(inst)
+	if c.PC != 2 {
+		t.Failed()
+	}
+}

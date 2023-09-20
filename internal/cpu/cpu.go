@@ -178,11 +178,9 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		}
 		c.PC += 2
 	case 0xA000: // Annn: set I to address nnn
-		log.Printf("Set I to 0x%x\n", nnn)
 		c.I = nnn
 		c.PC += 2
 	case 0xB000: // Bnnn: jump to location nnn + V[0]
-		log.Printf("Jump to 0x%x + V[0] (0x%x)\n", nnn, c.V[0])
 		c.PC = nnn + uint16(c.V[0])
 	case 0xC000: // Cxkk: V[x] = random byte AND kk
 		log.Printf("V[0x%x] = random byte\n", x)
