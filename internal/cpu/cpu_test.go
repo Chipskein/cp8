@@ -120,11 +120,88 @@ func TestInstruction_0x7xkk_IncrementRegisterXWithKK(t *testing.T) {
 
 func TestInstruction_0x8xyn_ExecMathOpNWithXandY(t *testing.T) {
 	var c = &chip8_cpu.CPU{}
-	var inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0xD, Y: 0x1}
+	//Op 0x0
+	var inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 0}
 	c.DecodeExec(inst)
-	if c.PC != 2 {
+	if c.PC != 2 || c.V[inst.X] != c.V[inst.Y] {
 		t.Failed()
 	}
+	//Op 0x1
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 1}
+	c.V[inst.X] = 1
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[inst.X] != (c.V[inst.X]|c.V[inst.Y]) {
+		t.Failed()
+	}
+	//Op 0x2
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 2}
+	c.V[inst.X] = 1
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[inst.X] != (c.V[inst.X]&c.V[inst.Y]) {
+		t.Failed()
+	}
+	//Op 0x3
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 3}
+	c.V[inst.X] = 1
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[inst.X] != (c.V[inst.X]^c.V[inst.Y]) {
+		t.Failed()
+	}
+	//Op 0x4
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 4}
+	var value_in_X = 10
+	var value_in_Y = 20
+	c.V[inst.X] = uint8(value_in_X)
+	c.V[inst.Y] = uint8(value_in_Y)
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[0xF] == 1 || c.V[inst.X] != (uint8(value_in_X)+uint8(value_in_Y)) {
+		t.Failed()
+	}
+	//Op 0x5
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 5}
+	value_in_X = 10
+	value_in_Y = 20
+	c.V[inst.X] = uint8(value_in_X)
+	c.V[inst.Y] = uint8(value_in_Y)
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[0xF] == 1 || c.V[inst.X] != (uint8(value_in_X)-uint8(value_in_Y)) {
+		t.Failed()
+	}
+	//Op 0x6
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 6}
+	value_in_X = 10
+	c.V[inst.X] = uint8(value_in_X)
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[0xF] != (uint8(value_in_X)|0x1) || c.V[inst.X] != (uint8(value_in_X)>>0x1) {
+		t.Failed()
+	}
+	//Op 0x7
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 7}
+	value_in_X = 10
+	value_in_Y = 20
+	c.V[inst.X] = uint8(value_in_X)
+	c.V[inst.Y] = uint8(value_in_Y)
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[0xF] == 0 || c.V[inst.X] != (uint8(value_in_Y)-uint8(value_in_X)) {
+		t.Failed()
+	}
+	//Op 0xE
+	c = &chip8_cpu.CPU{}
+	inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0x2, Y: 0x4, N: 0xE}
+	value_in_X = 10
+	c.V[inst.X] = uint8(value_in_X)
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[0xF] == ((uint8(value_in_X)>>7)&0x1) || c.V[inst.X] != (uint8(value_in_X)<<1) {
+		t.Failed()
+	}
+
 }
 
 func TestInstruction_0x9000_SkipIfXDifferentThanY(t *testing.T) {

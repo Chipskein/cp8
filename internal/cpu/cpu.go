@@ -126,19 +126,14 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0x8000: // 8xyn: Arithmetic stuff
 		switch n {
 		case 0x0:
-			log.Printf("V[0x%x] = V[0x%x] = 0x%x\n", x, y, c.V[y])
 			c.V[x] = c.V[y]
 		case 0x1:
-			log.Printf("V[0x%x] |= V[0x%x] = 0x%x\n", x, y, c.V[y])
 			c.V[x] = c.V[x] | c.V[y]
 		case 0x2:
-			log.Printf("V[0x%x] &= V[0x%x] = 0x%x\n", x, y, c.V[y])
 			c.V[x] = c.V[x] & c.V[y]
 		case 0x3:
-			log.Printf("V[0x%x] ^= V[0x%x] = 0x%x\n", x, y, c.V[y])
 			c.V[x] = c.V[x] ^ c.V[y]
 		case 0x4:
-			log.Printf("V[0x%x] = V[0x%x] + V[0x%x] = 0x%x + 0x%x\n", x, x, y, c.V[x], c.V[y])
 			if int(c.V[x])+int(c.V[y]) > 255 {
 				c.V[0xF] = 1
 			} else {
@@ -146,7 +141,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 			}
 			c.V[x] = c.V[x] + c.V[y]
 		case 0x5:
-			log.Printf("V[0x%x] = V[0x%x] - V[0x%x] = 0x%x - 0x%x\n", x, x, y, c.V[x], c.V[y])
 			if c.V[x] > c.V[y] {
 				c.V[0xF] = 1
 			} else {
@@ -154,11 +148,9 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 			}
 			c.V[x] = c.V[x] - c.V[y]
 		case 0x6:
-			log.Printf("V[0x%x] = V[0x%x] >> 1 = 0x%x >> 1\n", x, x, c.V[x])
 			c.V[0xF] = c.V[x] & 0x1
 			c.V[x] = (c.V[x] >> 1)
 		case 0x7:
-			log.Printf("V[0x%x] = V[0x%x] - V[0x%x] = 0x%x - 0x%x\n", x, y, x, c.V[y], c.V[x])
 			if c.V[y] > c.V[x] {
 				c.V[0xF] = 1
 			} else {
@@ -166,7 +158,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 			}
 			c.V[x] = c.V[y] - c.V[x]
 		case 0xE:
-			log.Printf("V[0x%x] = V[0x%x] << 1 = 0x%x << 1\n", x, x, c.V[x])
 			c.V[0xF] = (c.V[x] >> 7) & 0x1
 			c.V[x] = (c.V[x] << 1)
 		}
