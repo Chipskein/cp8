@@ -118,8 +118,7 @@ func TestInstruction_0x7xkk_IncrementRegisterXWithKK(t *testing.T) {
 	}
 }
 
-/*
-func TestInstruction_0x8xyn_DoNWithXandY(t *testing.T) {
+func TestInstruction_0x8xyn_ExecMathOpNWithXandY(t *testing.T) {
 	var c = &chip8_cpu.CPU{}
 	var inst = &chip8_cpu.Instruction{Opcode: 0x8000, X: 0xD, Y: 0x1}
 	c.DecodeExec(inst)
@@ -127,7 +126,6 @@ func TestInstruction_0x8xyn_DoNWithXandY(t *testing.T) {
 		t.Failed()
 	}
 }
-*/
 
 func TestInstruction_0x9000_SkipIfXDifferentThanY(t *testing.T) {
 	var c = &chip8_cpu.CPU{}
