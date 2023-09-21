@@ -102,19 +102,16 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0x3000: // 3xkk: skip next instr if V[x] = kk
 		if c.V[x] == kk {
 			c.PC += 2
-			break
 		}
 		c.PC += 2
 	case 0x4000: // 4xkk: skip next instr if V[x] != kk
 		if c.V[x] != kk {
 			c.PC += 2
-			break
 		}
 		c.PC += 2
 	case 0x5000: // 5xy0: skip next instr if V[x] == V[y]
 		if c.V[x] == c.V[y] {
 			c.PC += 2
-			break
 		}
 		c.PC += 2
 	case 0x6000: // 6xkk: set V[x] = kk
@@ -148,7 +145,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 			}
 			c.V[x] = c.V[x] - c.V[y]
 		case 0x6:
-			c.V[0xF] = c.V[x] & 0x1
+			c.V[0xF] = (c.V[x] & 0x1)
 			c.V[x] = (c.V[x] >> 1)
 		case 0x7:
 			if c.V[y] > c.V[x] {
@@ -165,7 +162,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0x9000: // 9xy0: skip instruction if Vx != Vy
 		if c.V[x] != c.V[y] {
 			c.PC += 2
-			break
 		}
 		c.PC += 2
 	case 0xA000: // Annn: set I to address nnn
@@ -214,6 +210,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 					log.Print("Deveria setar para true aqui")
 				} else {
 					*pixel = false
+					log.Print("Deveria setar para false aqui")
 				}
 				if (x_coord + 1) >= 64 {
 					break
@@ -228,6 +225,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 
 			i++
 		}
+		c.PC += 2
 	case 0xE000: // key-pressed events
 		switch kk {
 		case 0x9E: // skip next instr if key[Vx] is pressed
