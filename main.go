@@ -2,13 +2,13 @@ package main
 
 import (
 	"chip8/internal/cpu"
-	"io/ioutil"
+	"os"
 	"log"
 )
 
 func main() {
 	var rom_path = "./internal/__test_roms__/IBM_Logo.ch8"
-	data, err := ioutil.ReadFile(rom_path)
+	data, err := os.ReadFile(rom_path)
 	if err != nil {
 		log.Fatalf("Fail to read ROM :%s\n", rom_path)
 	}

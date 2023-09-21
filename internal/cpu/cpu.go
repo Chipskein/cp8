@@ -183,7 +183,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0xB000: // Bnnn: jump to location nnn + V[0]
 		c.PC = nnn + uint16(c.V[0])
 	case 0xC000: // Cxkk: V[x] = random byte AND kk
-		log.Printf("V[0x%x] = random byte\n", x)
 		c.V[x] = uint8(rand.Uint64()%256) & kk
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory

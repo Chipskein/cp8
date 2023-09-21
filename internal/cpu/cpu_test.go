@@ -159,3 +159,12 @@ func TestInstruction_0xBnnn_SetMemoryIndexToNNN(t *testing.T) {
 		t.Failed()
 	}
 }
+func TestInstruction_0xCxkk_SetXRandomByteAndKK(t *testing.T) {
+	var c = &chip8_cpu.CPU{}
+	var inst = &chip8_cpu.Instruction{Opcode: 0xC000, X: 0xC, Kk: 0xd}
+	c.V[inst.X] = 0
+	c.DecodeExec(inst)
+	if c.PC != 2 || c.V[inst.X] == 0 {
+		t.Failed()
+	}
+}
