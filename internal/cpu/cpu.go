@@ -178,7 +178,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
-		log.Printf("Draw sprite at (V[0x%x], V[0x%x]) = (0x%x, 0x%x) of height %d", x, y, c.V[x], c.V[y], n)
 		var x_coord = c.V[x] % 64
 		var y_coord = c.V[y] % 32
 		var original_x = x_coord
@@ -212,6 +211,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 
 				if pixel_set_uint8 == 1 {
 					*pixel = true
+					log.Print("Deveria setar para true aqui")
 				} else {
 					*pixel = false
 				}
