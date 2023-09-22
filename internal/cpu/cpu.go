@@ -207,10 +207,8 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 
 				if pixel_set_uint8 == 1 {
 					*pixel = true
-					log.Print("Deveria setar para true aqui")
 				} else {
 					*pixel = false
-					log.Print("Deveria setar para false aqui")
 				}
 				if (x_coord + 1) >= 64 {
 					break
