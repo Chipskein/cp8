@@ -24,18 +24,18 @@ func InitSDL() (renderer *sdl.Renderer, err error) {
 func Update(renderer *sdl.Renderer, display *[32][64]int) {
 	renderer.Clear()
 	for pixel_row_index, pixel_row := range display {
-    for pixel_column_index,pixel_set:=range pixel_row{
-		  if pixel_set==1 {
-			  renderer.SetDrawColor(255, 255, 255, 255)
-		  } else {
-			  renderer.SetDrawColor(0, 0, 0, 255)
-		  }
-		  rect := &sdl.FRect{W: 10, H: 10}
-		  rect.X = float32(pixel_row_index)
-      rect.Y = float32(pixel_column_index)
-		  renderer.FillRectF(rect)
-		  renderer.DrawRectF(rect)
-    }
+		for pixel_column_index, pixel_set := range pixel_row {
+			if pixel_set == 1 {
+				renderer.SetDrawColor(255, 255, 255, 255)
+			} else {
+				renderer.SetDrawColor(0, 0, 0, 255)
+			}
+			rect := &sdl.FRect{W: 15, H: 15}
+			rect.X = float32(pixel_row_index)
+			rect.Y = float32(pixel_column_index)
+			renderer.FillRectF(rect)
+			renderer.DrawRectF(rect)
+		}
 	}
 	renderer.Present()
 }

@@ -68,6 +68,7 @@ func (c *CPU) fetch() *Instruction {
 	var n = uint8(opcode & 0x000F)        // the lowest 4 bits
 	var kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
 	var nnn = opcode & 0x0FFF             // the lowest 12 bits
+	log.Printf("Intruction\n\topcode:%x\n\tx:%x\n\ty:%x\n\tkk:%x\n\tnnn:%x\n", opcode, x, y, kk, nnn)
 	return &Instruction{Opcode: opcode, X: x, Y: y, N: n, Kk: kk, Nnn: nnn}
 }
 func (c *CPU) DecodeExec(inst *Instruction) {
@@ -83,10 +84,10 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		{
 			switch kk {
 			case 0x00E0: // clear the screen
-				for row_index,row := range c.Display {
-          for column_index :=range row{
-					  c.Display[row_index][column_index] = 0
-          }
+				for row_index, row := range c.Display {
+					for column_index := range row {
+						c.Display[row_index][column_index] = 0
+					}
 				}
 				c.PC += 2
 			case 0x00EE: // ret
@@ -176,16 +177,21 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
-    c.V[0xF]=0
-    var n_int int =int(n);
-    for i:=0;i<n_int;i++{
-      var pixel=c.Memory[int(c.I)+i]
-      for k := 0; k<8; k++{
-	      if((pixel & (0x80 >> k)) != 0){
-		        c.Display[y][x] ^= 1;
-	      }					
-	    }
-    }
+		c.V[0xF] = 0
+		var n_int int = int(n)
+		for i := 0; i < n_int; i++ {
+			cY := (int(c.V[y]) + i) % (32)
+			var pixel = c.Memory[int(c.I)+i]
+			for k := 0; k < 8; k++ {
+				if (pixel & (0x80 >> k)) != 0 {
+					cX := (int(c.V[x]) + k) % (64)
+					if c.Display[cX][cY] == 1 {
+						c.V[0xF] = 1
+					}
+					c.Display[cX][cY] ^= 1
+				}
+			}
+		}
 		c.PC += 2
 	case 0xE000: // key-pressed events
 		switch kk {
@@ -279,7 +285,7 @@ func (c *CPU) run() {
 			screen.Update(renderer, &c.Display)
 			sdl.Delay(100)
 		}
-    
+
 	}
 }
 func Init(rom []byte) {

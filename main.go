@@ -2,8 +2,8 @@ package main
 
 import (
 	"chip8/internal/cpu"
-	"os"
 	"log"
+	"os"
 )
 
 func main() {
