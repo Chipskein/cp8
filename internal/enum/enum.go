@@ -1,7 +1,6 @@
 package enum
 
 type Machine_state int
-
 const (
 	Running Machine_state = 0
 	Paused  Machine_state = 1

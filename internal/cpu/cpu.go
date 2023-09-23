@@ -31,6 +31,7 @@ type CPU struct {
 	Sound_timer         uint8
 	Display             [32][64]int
 	Current_instruction *Instruction
+  Current_key uint8 //Key pressed
 }
 
 func (c *CPU) loadFontData() {
@@ -196,31 +197,33 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0xE000: // key-pressed events
 		switch kk {
 		case 0x9E: // skip next instr if key[Vx] is pressed
-			log.Printf("Skip next instruction if key[%d] is pressed\n", x)
-			//PC += (key[V[x]]) ? 4 : 2;
+      if c.Current_key==c.V[x]{
+        c.PC+=2
+      }
+			c.I += uint16(x) + 1
+      c.PC+=2
 		case 0xA1: // skip next instr if key[Vx] is not pressed
-			log.Printf("Skip next instruction if key[%d] is NOT pressed\n", x)
-			//PC += (!key[V[x]]) ? 4 : 2;
-
+      if c.Current_key!=c.V[x]{
+        c.PC+=2
+      }
+			c.I += uint16(x) + 1
+      c.PC+=2
 		}
 	case 0xF000: // misc
 		switch kk {
 		case 0x07:
-			log.Printf("V[0x%x] = delay timer = %d\n", x, c.Delay_timer)
 			c.V[x] = c.Delay_timer
 			c.PC += 2
 		case 0x0A:
-			log.Printf("Wait for key instruction\n")
 			c.PC += 2
 		case 0x15:
-			log.Printf("delay timer = V[0x%x] = %d\n", x, c.V[x])
 			c.Delay_timer = c.V[x]
+			c.I += uint16(x) + 1
+      c.PC+=2
 		case 0x18:
-			log.Printf("sound timer = V[0x%x] = %d\n", x, c.V[x])
 			c.Sound_timer = c.V[x]
 			c.PC += 2
 		case 0x1E:
-			log.Printf("I = I + V[0x%x] = 0x%x + 0x%x\n", x, c.I, c.V[x])
 			if c.I+uint16(c.V[x]) > uint16(0xfff) {
 				c.V[0xF] = 1
 			} else {
@@ -229,23 +232,21 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 			c.I = c.I + uint16(c.V[x])
 			c.PC += 2
 		case 0x29:
-			log.Printf("I = location of font for character V[0x%x] = 0x%x\n", x, c.V[x])
 			c.I = 5 * uint16(c.V[x])
+			c.I += uint16(x) + 1
+      c.PC+=2
 		case 0x33:
-			log.Printf("Store BCD for %d starting at address 0x%x\n", c.V[x], c.I)
 			c.Memory[c.I] = uint8((uint16(c.V[x]) % 1000) / 100) // hundred's digit
 			c.Memory[c.I+1] = (c.V[x] % 100) / 10                // ten's digit
 			c.Memory[c.I+2] = (c.V[x] % 10)                      // one's digit
 			c.PC += 2
 		case 0x55:
-			log.Printf("Copy sprite from registers 0 to 0x%x into memory at address 0x%x\n", x, c.I)
-
 			for i := 0; i <= int(x); i++ {
 				c.Memory[c.I+uint16(i)] = c.V[i]
 			}
 			c.I += uint16(x) + 1
+      c.PC+=2
 		case 0x65:
-			log.Printf("Copy sprite from memory at address 0x%x into registers 0 to 0x%x\n", x, c.I)
 			for i := 0; i <= int(x); i++ {
 				c.V[i] = c.Memory[c.I+uint16(i)]
 			}
