@@ -29,7 +29,7 @@ type CPU struct {
 	PC                  uint16         //pc counter
 	Delay_timer         uint8
 	Sound_timer         uint8
-	Display             [64 * 32]bool
+	Display             [32][64]int
 	Current_instruction *Instruction
 }
 
@@ -83,8 +83,10 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		{
 			switch kk {
 			case 0x00E0: // clear the screen
-				for i := range c.Display {
-					c.Display[i] = false
+				for row_index,row := range c.Display {
+          for column_index :=range row{
+					  c.Display[row_index][column_index] = 0
+          }
 				}
 				c.PC += 2
 			case 0x00EE: // ret
@@ -174,55 +176,16 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
-		var x_coord = c.V[x] % 64
-		var y_coord = c.V[y] % 32
-		var original_x = x_coord
-		c.V[0xF] = 0
-		var i uint8 = 0
-		for i < n {
-			var sprite_data = c.Memory[uint8(c.I)+i]
-			var j uint8 = 7
-			for j > 0 {
-				x_coord = original_x
-				var pixel = &c.Display[y_coord*64+x_coord]
-				var pixel_set_uint8 uint8
-
-				if *pixel {
-					pixel_set_uint8 = 1
-				} else {
-					pixel_set_uint8 = 0
-				}
-
-				var sprite_bit uint8 = sprite_data & (1 << j)
-				var bitset bool
-				if sprite_bit == 1 {
-					bitset = true
-				} else {
-					bitset = false
-				}
-				if bitset && *pixel {
-					c.V[0xF] = 1
-				}
-				pixel_set_uint8 ^= sprite_bit
-
-				if pixel_set_uint8 == 1 {
-					*pixel = true
-				} else {
-					*pixel = false
-				}
-				if (x_coord + 1) >= 64 {
-					break
-				}
-				j--
-
-			}
-
-			if (y_coord + 1) >= 32 {
-				break
-			}
-
-			i++
-		}
+    c.V[0xF]=0
+    var n_int int =int(n);
+    for i:=0;i<n_int;i++{
+      var pixel=c.Memory[int(c.I)+i]
+      for k := 0; k<8; k++{
+	      if((pixel & (0x80 >> k)) != 0){
+		        c.Display[y][x] ^= 1;
+	      }					
+	    }
+    }
 		c.PC += 2
 	case 0xE000: // key-pressed events
 		switch kk {
@@ -316,7 +279,7 @@ func (c *CPU) run() {
 			screen.Update(renderer, &c.Display)
 			sdl.Delay(100)
 		}
-
+    
 	}
 }
 func Init(rom []byte) {

@@ -21,19 +21,21 @@ func InitSDL() (renderer *sdl.Renderer, err error) {
 	}
 	return renderer, nil
 }
-func Update(renderer *sdl.Renderer, display *[64 * 32]bool) {
+func Update(renderer *sdl.Renderer, display *[32][64]int) {
 	renderer.Clear()
-	for pixel_index, pixel_set := range display {
-		if pixel_set {
-			renderer.SetDrawColor(255, 255, 255, 255)
-		} else {
-			renderer.SetDrawColor(0, 0, 0, 255)
-		}
-		rect := &sdl.FRect{W: 10, H: 10}
-		rect.X = float32(pixel_index%64) * 10
-		rect.Y = float32(pixel_index/32) * 10
-		renderer.FillRectF(rect)
-		renderer.DrawRectF(rect)
+	for pixel_row_index, pixel_row := range display {
+    for pixel_column_index,pixel_set:=range pixel_row{
+		  if pixel_set==1 {
+			  renderer.SetDrawColor(255, 255, 255, 255)
+		  } else {
+			  renderer.SetDrawColor(0, 0, 0, 255)
+		  }
+		  rect := &sdl.FRect{W: 10, H: 10}
+		  rect.X = float32(pixel_row_index)
+      rect.Y = float32(pixel_column_index)
+		  renderer.FillRectF(rect)
+		  renderer.DrawRectF(rect)
+    }
 	}
 	renderer.Present()
 }
