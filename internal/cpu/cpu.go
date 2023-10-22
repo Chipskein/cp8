@@ -3,7 +3,6 @@ package cpu
 import (
 	"chip8/internal/enum"
 	"chip8/internal/screen"
-	"log"
 	"math/rand"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -31,7 +30,8 @@ type CPU struct {
 	Sound_timer         uint8
 	Display             [32][64]int
 	Current_instruction *Instruction
-  Current_key uint8 //Key pressed
+	Current_key         uint8 //Key pressed
+	Update_Screen       bool
 }
 
 func (c *CPU) loadFontData() {
@@ -69,7 +69,8 @@ func (c *CPU) fetch() *Instruction {
 	var n = uint8(opcode & 0x000F)        // the lowest 4 bits
 	var kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
 	var nnn = opcode & 0x0FFF             // the lowest 12 bits
-	log.Printf("Intruction\n\topcode:%x\n\tx:%x\n\ty:%x\n\tkk:%x\n\tnnn:%x\n", opcode, x, y, kk, nnn)
+	//log.Printf("\nIntruction\n\topcode:%x\n\tx:%x\n\ty:%x\n\tkk:%x\n\tnnn:%x\n", opcode, x, y, kk, nnn)
+	//log.Printf("\nIntruction\n\topcode:%x\n", opcode)
 	return &Instruction{Opcode: opcode, X: x, Y: y, N: n, Kk: kk, Nnn: nnn}
 }
 func (c *CPU) DecodeExec(inst *Instruction) {
@@ -90,6 +91,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 						c.Display[row_index][column_index] = 0
 					}
 				}
+				c.Update_Screen = true
 				c.PC += 2
 			case 0x00EE: // ret
 				c.SP--
@@ -193,21 +195,22 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 				}
 			}
 		}
+		c.Update_Screen = true
 		c.PC += 2
 	case 0xE000: // key-pressed events
 		switch kk {
 		case 0x9E: // skip next instr if key[Vx] is pressed
-      if c.Current_key==c.V[x]{
-        c.PC+=2
-      }
+			if c.Current_key == c.V[x] {
+				c.PC += 2
+			}
 			c.I += uint16(x) + 1
-      c.PC+=2
+			c.PC += 2
 		case 0xA1: // skip next instr if key[Vx] is not pressed
-      if c.Current_key!=c.V[x]{
-        c.PC+=2
-      }
+			if c.Current_key != c.V[x] {
+				c.PC += 2
+			}
 			c.I += uint16(x) + 1
-      c.PC+=2
+			c.PC += 2
 		}
 	case 0xF000: // misc
 		switch kk {
@@ -219,7 +222,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		case 0x15:
 			c.Delay_timer = c.V[x]
 			c.I += uint16(x) + 1
-      c.PC+=2
+			c.PC += 2
 		case 0x18:
 			c.Sound_timer = c.V[x]
 			c.PC += 2
@@ -234,7 +237,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		case 0x29:
 			c.I = 5 * uint16(c.V[x])
 			c.I += uint16(x) + 1
-      c.PC+=2
+			c.PC += 2
 		case 0x33:
 			c.Memory[c.I] = uint8((uint16(c.V[x]) % 1000) / 100) // hundred's digit
 			c.Memory[c.I+1] = (c.V[x] % 100) / 10                // ten's digit
@@ -245,7 +248,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 				c.Memory[c.I+uint16(i)] = c.V[i]
 			}
 			c.I += uint16(x) + 1
-      c.PC+=2
+			c.PC += 2
 		case 0x65:
 			for i := 0; i <= int(x); i++ {
 				c.V[i] = c.Memory[c.I+uint16(i)]
@@ -283,8 +286,11 @@ func (c *CPU) run() {
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				screen.HandleSDLEvents(event, &c.Status)
 			}
-			screen.Update(renderer, &c.Display)
-			sdl.Delay(100)
+			if c.Update_Screen {
+				screen.Update(renderer, &c.Display)
+				c.Update_Screen = false
+			}
+			sdl.Delay(300)
 		}
 
 	}

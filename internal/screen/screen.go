@@ -30,7 +30,7 @@ func Update(renderer *sdl.Renderer, display *[32][64]int) {
 			} else {
 				renderer.SetDrawColor(0, 0, 0, 255)
 			}
-			rect := &sdl.FRect{W: 15, H: 15}
+			rect := &sdl.FRect{W: 1, H: 1}
 			rect.X = float32(pixel_row_index)
 			rect.Y = float32(pixel_column_index)
 			renderer.FillRectF(rect)

@@ -2,16 +2,15 @@ package cpu_test
 
 import (
 	chip8_cpu "chip8/internal/cpu"
-	"log"
 	"testing"
 )
 
 func TestInstruction_0x0000_CleanScreen(t *testing.T) {
 	var c = &chip8_cpu.CPU{}
-	for row_index,row := range c.Display {
-    for column_index:=range row{
-		  c.Display[row_index][column_index] = 1
-    }
+	for row_index, row := range c.Display {
+		for column_index := range row {
+			c.Display[row_index][column_index] = 1
+		}
 	}
 	var inst = &chip8_cpu.Instruction{Opcode: 0x0000, Kk: 0x00E0}
 	c.DecodeExec(inst)
@@ -19,11 +18,11 @@ func TestInstruction_0x0000_CleanScreen(t *testing.T) {
 		t.Fail()
 	}
 	for _, row := range c.Display {
-    for _,is_pixel_up:=range row{
-		  if is_pixel_up==1 {
-			  t.Fail()
-		  }
-    }
+		for _, is_pixel_up := range row {
+			if is_pixel_up == 1 {
+				t.Fail()
+			}
+		}
 	}
 }
 func TestInstruction_0x0000_Return(t *testing.T) {
@@ -369,19 +368,26 @@ func TestInstruction_0xCxkk_SetXRandomByteAndKK(t *testing.T) {
 func TestInstruction_0xDxyn_DisplayAnNByteAtMemory(t *testing.T) {
 	var c = &chip8_cpu.CPU{}
 	var inst = &chip8_cpu.Instruction{Opcode: 0xD000, X: 0x0, Y: 0x0, N: 0x8}
+	c.Memory[1] = 12
+	c.Memory[2] = 12
+	c.Memory[3] = 12
+	c.Memory[4] = 12
+	c.Memory[5] = 12
+	c.Memory[6] = 12
+	c.Memory[7] = 12
+	c.Memory[8] = 12
 	c.DecodeExec(inst)
 	if c.PC != 2 {
 		t.Log("c.PC != 2")
 		t.Fail()
 	}
 	pixel_on_counter := 0
-	for row_index, row := range c.Display {
-    for column_index,pixel:=range row{
-		  if pixel==1 {
-			  pixel_on_counter++
-			  log.Printf("Pixel (%d,%d) On\n", row_index,column_index)
-		  }
-    }
+	for _, row := range c.Display {
+		for _, pixel := range row {
+			if pixel == 1 {
+				pixel_on_counter++
+			}
+		}
 	}
 	if pixel_on_counter == 0 {
 		t.Log("pixel_on_counter == 0")
