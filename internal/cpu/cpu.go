@@ -180,21 +180,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
-		c.V[0xF] = 0
-		var n_int int = int(n)
-		for i := 0; i < n_int; i++ {
-			cY := (int(c.V[y]) + i) % (32)
-			var pixel = c.Memory[int(c.I)+i]
-			for k := 0; k < 8; k++ {
-				if (pixel & (0x80 >> k)) != 0 {
-					cX := (int(c.V[x]) + k) % (64)
-					if c.Display[cX][cY] == 1 {
-						c.V[0xF] = 1
-					}
-					c.Display[cX][cY] ^= 1
-				}
-			}
-		}
 		c.Update_Screen = true
 		c.PC += 2
 	case 0xE000: // key-pressed events
