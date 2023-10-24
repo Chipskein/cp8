@@ -3,6 +3,7 @@ package cpu
 import (
 	"chip8/internal/enum"
 	"chip8/internal/screen"
+	"log"
 	"math/rand"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -28,7 +29,7 @@ type CPU struct {
 	PC                  uint16         //pc counter
 	Delay_timer         uint8
 	Sound_timer         uint8
-	Display             [32][64]int
+	Display             [64][32]int
 	Current_instruction *Instruction
 	Current_key         uint8 //Key pressed
 	Update_Screen       bool
@@ -53,7 +54,7 @@ func (c *CPU) loadFontData() {
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 	}
-	var memAddress = 0x050
+	var memAddress = 0x000
 	for _, value := range font_set {
 		c.Memory[memAddress] = value
 		memAddress++
@@ -70,7 +71,7 @@ func (c *CPU) fetch() *Instruction {
 	var kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
 	var nnn = opcode & 0x0FFF             // the lowest 12 bits
 	//log.Printf("\nIntruction\n\topcode:%x\n\tx:%x\n\ty:%x\n\tkk:%x\n\tnnn:%x\n", opcode, x, y, kk, nnn)
-	//log.Printf("\nIntruction\n\topcode:%x\n", opcode)
+	log.Printf("\nIntruction\n\topcode:%x\n", opcode)
 	return &Instruction{Opcode: opcode, X: x, Y: y, N: n, Kk: kk, Nnn: nnn}
 }
 func (c *CPU) DecodeExec(inst *Instruction) {
@@ -180,6 +181,31 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
+		// Initialize collision flag to 0
+		c.V[0xF] = 0
+		log.Printf("%x %x %x\n", x, y, n)
+		startX := int(c.V[x]) % 64
+		startY := int(c.V[y]) % 32
+		for i := uint16(0); i < uint16(n); i++ {
+			// Get the sprite byte from memory
+			spriteByte := c.Memory[c.I+uint16(i)]
+			for j := uint16(0); j < 8; j++ {
+				// Calculate the coordinates of the pixel on the display
+				displayX := (startX + int(j)) % 64
+				displayY := (startY + int(i)) % 32
+				// Get the current state of the pixel on the display
+				currentPixel := c.Display[displayX][displayY]
+				// Get the corresponding bit from the sprite byte
+				spriteBit := (spriteByte >> (7 - j)) & 1
+				// Check for collision
+				if currentPixel == 1 && spriteBit == 1 {
+					c.V[0xF] = 1
+				}
+				// Update the pixel by XORing it with the sprite bit
+				c.Display[displayX][displayY] ^= int(spriteBit)
+			}
+		}
+
 		c.Update_Screen = true
 		c.PC += 2
 	case 0xE000: // key-pressed events

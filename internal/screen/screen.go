@@ -21,7 +21,7 @@ func InitSDL() (renderer *sdl.Renderer, err error) {
 	}
 	return renderer, nil
 }
-func Update(renderer *sdl.Renderer, display *[32][64]int) {
+func Update(renderer *sdl.Renderer, display *[64][32]int) {
 	renderer.Clear()
 	for pixel_row_index, pixel_row := range display {
 		for pixel_column_index, pixel_set := range pixel_row {
