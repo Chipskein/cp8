@@ -4,7 +4,6 @@ import (
 	"chip8/internal/enum"
 	"chip8/internal/screen"
 	"log"
-	"math/rand"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -29,7 +28,7 @@ type CPU struct {
 	PC                  uint16         //pc counter
 	Delay_timer         uint8
 	Sound_timer         uint8
-	Display             [64][32]int
+	Display             [32][64]int
 	Current_instruction *Instruction
 	Current_key         uint8 //Key pressed
 	Update_Screen       bool
@@ -60,7 +59,7 @@ func (c *CPU) loadFontData() {
 		memAddress++
 	}
 }
-func (c *CPU) fetch() *Instruction {
+func (c *CPU) Fetch() *Instruction {
 	var addr1 = c.Memory[c.PC]
 	var addr2 = c.Memory[c.PC+1]
 	c.PC += 2
@@ -71,7 +70,7 @@ func (c *CPU) fetch() *Instruction {
 	var kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
 	var nnn = opcode & 0x0FFF             // the lowest 12 bits
 	//log.Printf("\nIntruction\n\topcode:%x\n\tx:%x\n\ty:%x\n\tkk:%x\n\tnnn:%x\n", opcode, x, y, kk, nnn)
-	log.Printf("\nIntruction\n\topcode:%x\n", opcode)
+	//log.Printf("\nIntruction\n\topcode:%x\n", opcode)
 	return &Instruction{Opcode: opcode, X: x, Y: y, N: n, Kk: kk, Nnn: nnn}
 }
 func (c *CPU) DecodeExec(inst *Instruction) {
@@ -94,186 +93,51 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 				}
 				c.Update_Screen = true
 				c.PC += 2
-			case 0x00EE: // ret
-				c.SP--
-				c.PC = c.Stack[c.SP]
 			}
 		}
 	case 0x1000: // 1nnn: jump to address nnn
 		c.PC = nnn
-	case 0x2000: // 2nnn: call address nnn
-		var index = c.SP
-		c.Stack[index] = c.PC + 2
-		c.SP++
-		c.PC = nnn
-	case 0x3000: // 3xkk: skip next instr if V[x] = kk
-		if c.V[x] == kk {
-			c.PC += 2
-		}
-		c.PC += 2
-	case 0x4000: // 4xkk: skip next instr if V[x] != kk
-		if c.V[x] != kk {
-			c.PC += 2
-		}
-		c.PC += 2
-	case 0x5000: // 5xy0: skip next instr if V[x] == V[y]
-		if c.V[x] == c.V[y] {
-			c.PC += 2
-		}
-		c.PC += 2
 	case 0x6000: // 6xkk: set V[x] = kk
 		c.V[x] = kk
 		c.PC += 2
 	case 0x7000: // 7xkk: set V[x] = V[x] + kk
 		c.V[x] += kk
 		c.PC += 2
-	case 0x8000: // 8xyn: Arithmetic stuff
-		switch n {
-		case 0x0:
-			c.V[x] = c.V[y]
-		case 0x1:
-			c.V[x] = c.V[x] | c.V[y]
-		case 0x2:
-			c.V[x] = c.V[x] & c.V[y]
-		case 0x3:
-			c.V[x] = c.V[x] ^ c.V[y]
-		case 0x4:
-			if int(c.V[x])+int(c.V[y]) > 255 {
-				c.V[0xF] = 1
-			} else {
-				c.V[0xF] = 0
-			}
-			c.V[x] = c.V[x] + c.V[y]
-		case 0x5:
-			if c.V[x] > c.V[y] {
-				c.V[0xF] = 1
-			} else {
-				c.V[0xF] = 0
-			}
-			c.V[x] = c.V[x] - c.V[y]
-		case 0x6:
-			c.V[0xF] = (c.V[x] & 0x1)
-			c.V[x] = (c.V[x] >> 1)
-		case 0x7:
-			if c.V[y] > c.V[x] {
-				c.V[0xF] = 1
-			} else {
-				c.V[0xF] = 0
-			}
-			c.V[x] = c.V[y] - c.V[x]
-		case 0xE:
-			c.V[0xF] = (c.V[x] >> 7) & 0x1
-			c.V[x] = (c.V[x] << 1)
-		}
-		c.PC += 2
-	case 0x9000: // 9xy0: skip instruction if Vx != Vy
-		if c.V[x] != c.V[y] {
-			c.PC += 2
-		}
-		c.PC += 2
 	case 0xA000: // Annn: set I to address nnn
 		c.I = nnn
-		c.PC += 2
-	case 0xB000: // Bnnn: jump to location nnn + V[0]
-		c.PC = nnn + uint16(c.V[0])
-	case 0xC000: // Cxkk: V[x] = random byte AND kk
-		c.V[x] = uint8(rand.Uint64()%256) & kk
 		c.PC += 2
 	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
 		// Initialize collision flag to 0
 		c.V[0xF] = 0
-		log.Printf("%x %x %x\n", x, y, n)
-		startX := int(c.V[x]) % 64
-		startY := int(c.V[y]) % 32
-		for i := uint16(0); i < uint16(n); i++ {
-			// Get the sprite byte from memory
-			spriteByte := c.Memory[c.I+uint16(i)]
-			for j := uint16(0); j < 8; j++ {
-				// Calculate the coordinates of the pixel on the display
-				displayX := (startX + int(j)) % 64
-				displayY := (startY + int(i)) % 32
-				// Get the current state of the pixel on the display
-				currentPixel := c.Display[displayX][displayY]
-				// Get the corresponding bit from the sprite byte
-				spriteBit := (spriteByte >> (7 - j)) & 1
-				// Check for collision
+		startX := c.V[x]
+		startY := c.V[y]
+		for y_sprite := uint16(0); y_sprite < uint16(n); y_sprite++ {
+			spriteByte := c.Memory[c.I+y_sprite]
+			for x_sprite := uint16(0); x_sprite < 8; x_sprite++ {
+				displayX := (startX + uint8(x_sprite)) % 64
+				displayY := (startY + uint8(y_sprite)) % 32
+				currentPixel := c.Display[displayY][displayX]
+				spriteBit := (spriteByte >> (7 - uint8(x_sprite))) & 1
 				if currentPixel == 1 && spriteBit == 1 {
 					c.V[0xF] = 1
+					log.Printf("(%d,%d)", displayX, displayY)
 				}
-				// Update the pixel by XORing it with the sprite bit
-				c.Display[displayX][displayY] ^= int(spriteBit)
+				c.Display[displayY][displayX] ^= int(spriteBit)
 			}
 		}
-
 		c.Update_Screen = true
 		c.PC += 2
-	case 0xE000: // key-pressed events
-		switch kk {
-		case 0x9E: // skip next instr if key[Vx] is pressed
-			if c.Current_key == c.V[x] {
-				c.PC += 2
-			}
-			c.I += uint16(x) + 1
-			c.PC += 2
-		case 0xA1: // skip next instr if key[Vx] is not pressed
-			if c.Current_key != c.V[x] {
-				c.PC += 2
-			}
-			c.I += uint16(x) + 1
-			c.PC += 2
-		}
-	case 0xF000: // misc
-		switch kk {
-		case 0x07:
-			c.V[x] = c.Delay_timer
-			c.PC += 2
-		case 0x0A:
-			c.PC += 2
-		case 0x15:
-			c.Delay_timer = c.V[x]
-			c.I += uint16(x) + 1
-			c.PC += 2
-		case 0x18:
-			c.Sound_timer = c.V[x]
-			c.PC += 2
-		case 0x1E:
-			if c.I+uint16(c.V[x]) > uint16(0xfff) {
-				c.V[0xF] = 1
-			} else {
-				c.V[0xF] = 0
-			}
-			c.I = c.I + uint16(c.V[x])
-			c.PC += 2
-		case 0x29:
-			c.I = 5 * uint16(c.V[x])
-			c.I += uint16(x) + 1
-			c.PC += 2
-		case 0x33:
-			c.Memory[c.I] = uint8((uint16(c.V[x]) % 1000) / 100) // hundred's digit
-			c.Memory[c.I+1] = (c.V[x] % 100) / 10                // ten's digit
-			c.Memory[c.I+2] = (c.V[x] % 10)                      // one's digit
-			c.PC += 2
-		case 0x55:
-			for i := 0; i <= int(x); i++ {
-				c.Memory[c.I+uint16(i)] = c.V[i]
-			}
-			c.I += uint16(x) + 1
-			c.PC += 2
-		case 0x65:
-			for i := 0; i <= int(x); i++ {
-				c.V[i] = c.Memory[c.I+uint16(i)]
-			}
-			c.I += uint16(x) + 1
-			c.PC += 2
-		}
+	default:
+		log.Printf("\nIntruction\n\topcode:%x\n", opcode)
+		log.Panicf("UNKNOW INSTRUCTION\n")
 	}
 
 }
 
 func (c *CPU) cycle() {
 	if c.Status != enum.Paused {
-		insc := c.fetch()
+		insc := c.Fetch()
 		c.Current_instruction = insc
 		c.DecodeExec(insc)
 	}
