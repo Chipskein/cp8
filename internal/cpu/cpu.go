@@ -121,7 +121,6 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 				spriteBit := (spriteByte >> (7 - uint8(x_sprite))) & 1
 				if currentPixel == 1 && spriteBit == 1 {
 					c.V[0xF] = 1
-					log.Printf("COLLISÃO:%x\n", inst.Opcode)
 				}
 				c.Display[displayY][displayX] ^= int(spriteBit)
 			}
