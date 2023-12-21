@@ -64,13 +64,11 @@ func (c *CPU) Fetch() *Instruction {
 	var addr2 = c.Memory[c.PC+1]
 	c.PC += 2
 	var opcode = uint16(addr1)<<8 | uint16(addr2)
-	var x = uint8((opcode >> 8) & 0x000F) // the lower 4 bits of the high byte
-	var y = uint8((opcode >> 4) & 0x000F) // the upper 4 bits of the low byte
+	var x = uint8((opcode & 0x0F00) >> 8) // the lower 4 bits of the high byte
+	var y = uint8((opcode & 0x00F0) >> 4) // the upper 4 bits of the low byte
 	var n = uint8(opcode & 0x000F)        // the lowest 4 bits
 	var kk = uint8(opcode & 0x00FF)       // the lowest 8 bits
 	var nnn = opcode & 0x0FFF             // the lowest 12 bits
-	//log.Printf("\nIntruction\n\topcode:%x\n\tx:%x\n\ty:%x\n\tkk:%x\n\tnnn:%x\n", opcode, x, y, kk, nnn)
-	//log.Printf("\nIntruction\n\topcode:%x\n", opcode)
 	return &Instruction{Opcode: opcode, X: x, Y: y, N: n, Kk: kk, Nnn: nnn}
 }
 func (c *CPU) DecodeExec(inst *Instruction) {
@@ -112,16 +110,18 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 		c.V[0xF] = 0
 		startX := c.V[x]
 		startY := c.V[y]
+		log.Printf("%x\n", inst.Opcode)
 		for y_sprite := uint16(0); y_sprite < uint16(n); y_sprite++ {
 			spriteByte := c.Memory[c.I+y_sprite]
 			for x_sprite := uint16(0); x_sprite < 8; x_sprite++ {
 				displayX := (startX + uint8(x_sprite)) % 64
 				displayY := (startY + uint8(y_sprite)) % 32
+
 				currentPixel := c.Display[displayY][displayX]
 				spriteBit := (spriteByte >> (7 - uint8(x_sprite))) & 1
 				if currentPixel == 1 && spriteBit == 1 {
 					c.V[0xF] = 1
-					log.Printf("(%d,%d)", displayX, displayY)
+					log.Printf("COLLISÃO:%x\n", inst.Opcode)
 				}
 				c.Display[displayY][displayX] ^= int(spriteBit)
 			}
@@ -156,7 +156,7 @@ func (c *CPU) run() {
 	}
 	c.Status = enum.Running
 	for c.Status != enum.Stop {
-		if c.PC <= (c.Rom_size)+0x200 {
+		if c.PC < (c.Rom_size)+0x200 {
 			c.cycle()
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				screen.HandleSDLEvents(event, &c.Status)
