@@ -3,6 +3,7 @@ package cpu
 import (
 	"chip8/internal/enum"
 	"chip8/internal/screen"
+	"fmt"
 	"log"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -28,9 +29,8 @@ type CPU struct {
 	PC                  uint16         //pc counter
 	Delay_timer         uint8
 	Sound_timer         uint8
-	Display             [32][64]int
+	GraphicsBuffer      [32][64]int
 	Current_instruction *Instruction
-	Current_key         uint8 //Key pressed
 	Update_Screen       bool
 }
 
@@ -78,15 +78,15 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	var n = inst.N
 	var kk = inst.Kk
 	var nnn = inst.Nnn
-
+	log.Printf("%+v", inst)
 	switch opcode & 0xF000 {
 	case 0x0000:
 		{
 			switch kk {
 			case 0x00E0: // clear the screen
-				for row_index, row := range c.Display {
+				for row_index, row := range c.GraphicsBuffer {
 					for column_index := range row {
-						c.Display[row_index][column_index] = 0
+						c.GraphicsBuffer[row_index][column_index] = 0
 					}
 				}
 				c.Update_Screen = true
@@ -104,29 +104,29 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	case 0xA000: // Annn: set I to address nnn
 		c.I = nnn
 		c.PC += 2
-	case 0xD000: // Dxyn: Display an n-byte sprite starting at memory
+	case 0xD000: // Dxyn: GraphicsBuffer an n-byte sprite starting at memory
 		// location I at (Vx, Vy) on the screen, VF = collision
 		// Initialize collision flag to 0
 		c.V[0xF] = 0
-		startX := c.V[x]
-		startY := c.V[y]
-		log.Printf("%x\n", inst.Opcode)
-		for y_sprite := uint16(0); y_sprite < uint16(n); y_sprite++ {
-			spriteByte := c.Memory[c.I+y_sprite]
-			for x_sprite := uint16(0); x_sprite < 8; x_sprite++ {
-				displayX := (startX + uint8(x_sprite)) % 64
-				displayY := (startY + uint8(y_sprite)) % 32
-
-				currentPixel := c.Display[displayY][displayX]
-				spriteBit := (spriteByte >> (7 - uint8(x_sprite))) & 1
-				if currentPixel == 1 && spriteBit == 1 {
-					c.V[0xF] = 1
+		dx := y % 64
+		dy := x % 32
+		dh := n
+		sprite := c.Memory[c.I : uint8(c.I)+dh]
+		for _y, row := range sprite {
+			f := fmt.Sprintf("%08b", row)
+			for _x, pixel := range f {
+				if pixel == '1' {
+					displayX := (int(dx) + _x) % 64
+					displayY := (int(dy) + _y) % 32
+					if c.GraphicsBuffer[displayX][displayY] == 1 {
+						c.V[0xF] = 1
+					}
+					c.GraphicsBuffer[displayX][displayY] ^= 1
 				}
-				c.Display[displayY][displayX] ^= int(spriteBit)
 			}
 		}
-		c.Update_Screen = true
 		c.PC += 2
+		c.Update_Screen = true
 	default:
 		log.Printf("\nIntruction\n\topcode:%x\n", opcode)
 		log.Panicf("UNKNOW INSTRUCTION\n")
@@ -161,10 +161,10 @@ func (c *CPU) run() {
 				screen.HandleSDLEvents(event, &c.Status)
 			}
 			if c.Update_Screen {
-				screen.Update(renderer, &c.Display)
+				screen.Update(renderer, &c.GraphicsBuffer)
 				c.Update_Screen = false
 			}
-			sdl.Delay(300)
+			sdl.Delay(700)
 		}
 
 	}
