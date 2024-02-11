@@ -63,6 +63,7 @@ func (c *CPU) Fetch() *Instruction {
 	var addr1 = c.Memory[c.PC]
 	var addr2 = c.Memory[c.PC+1]
 	c.PC += 2
+	//TEST THIS TRASH
 	var opcode = uint16(addr1)<<8 | uint16(addr2)
 	var x = uint8((opcode & 0x0F00) >> 8) // the lower 4 bits of the high byte
 	var y = uint8((opcode & 0x00F0) >> 4) // the upper 4 bits of the low byte
@@ -79,6 +80,7 @@ func (c *CPU) DecodeExec(inst *Instruction) {
 	var kk = inst.Kk
 	var nnn = inst.Nnn
 	log.Printf("%+v", inst)
+
 	switch opcode & 0xF000 {
 	case 0x0000:
 		{
