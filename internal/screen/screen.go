@@ -17,7 +17,7 @@ func InitSDL() (renderer *sdl.Renderer, err error) {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		return nil, err
 	}
-	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 640, 320, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("chip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return nil, err
 	}
