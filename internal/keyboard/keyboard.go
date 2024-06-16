@@ -25,6 +25,12 @@ func HandleInput(c *cpu.CPU) {
 		rl.CloseWindow()
 		os.Exit(0)
 	}
+	if rl.IsKeyReleased(rl.KeyOne) || rl.IsKeyReleased(rl.KeyTwo) || rl.IsKeyReleased(rl.KeyThree) || rl.IsKeyReleased(rl.KeyFour) ||
+		rl.IsKeyReleased(rl.KeyQ) || rl.IsKeyReleased(rl.KeyW) || rl.IsKeyReleased(rl.KeyE) || rl.IsKeyReleased(rl.KeyR) ||
+		rl.IsKeyReleased(rl.KeyA) || rl.IsKeyReleased(rl.KeyS) || rl.IsKeyReleased(rl.KeyD) || rl.IsKeyReleased(rl.KeyF) ||
+		rl.IsKeyReleased(rl.KeyZ) || rl.IsKeyReleased(rl.KeyX) || rl.IsKeyReleased(rl.KeyC) || rl.IsKeyReleased(rl.KeyV) {
+		c.Key = -1
+	}
 	//line 1
 	if rl.IsKeyDown(rl.KeyOne) {
 		if config.DEBUG {

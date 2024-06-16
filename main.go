@@ -14,6 +14,7 @@ var pixel_size int32 = 10
 var scale int32 = 1
 var title = "one day"
 var fps int32 = 60
+var cycles_per_frame int = 10
 
 /*UpdateDisplay function is used to set a display buffer to the screen.*/
 func UpdateDisplay(DisplayBuffer [32][64]int) {
@@ -29,10 +30,15 @@ func UpdateDisplay(DisplayBuffer [32][64]int) {
 }
 
 func main() {
-	var path = "roms/test_opcode.ch8"
+	var path = "roms/games/Wall [David Winter].ch8"
 	rl.InitWindow(width, height, title)
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(fps)
+	rl.InitAudioDevice() // Initialize audio device
+	defer rl.CloseAudioDevice()
+	beep := rl.LoadSound("resources/audio/beep.wav") // Load beep sound
+	rl.SetMasterVolume(0.3)
+	defer rl.UnloadSound(beep)
 	c, err := cpu.NewCPU(path)
 	if err != nil {
 		panic(err)
@@ -45,7 +51,9 @@ func main() {
 		keyboard.HandleInput(c)
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
-		c.Cycle()
+		for i := 0; i < cycles_per_frame; i++ {
+			c.Cycle()
+		}
 		UpdateDisplay(c.GraphicsBuffer)
 		rl.EndDrawing()
 		rl.WaitTime(0.01667)
@@ -53,6 +61,9 @@ func main() {
 			c.DT--
 		}
 		if c.ST > 0 {
+			if c.ST == 1 { // Play sound when ST is set
+				rl.PlaySound(beep)
+			}
 			c.ST--
 		}
 
