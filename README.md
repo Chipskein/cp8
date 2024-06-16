@@ -1,7 +1,7 @@
 ## Cp8
 https://github.com/Chipskein/cp8/assets/47486707/dff47cd7-9e65-481c-9a53-138c67da7a66
 #### Description
-  Chip8 interpreter/emulator/Virtual Machine written in go
+  my first Chip-8 interpreter
 #### KeyMap
 | Chip8 Keyboard  |  Converted Keyboard |
 |-----------------|---------------------|
