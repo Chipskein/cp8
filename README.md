@@ -3,7 +3,7 @@ https://github.com/Chipskein/cp8/assets/47486707/dff47cd7-9e65-481c-9a53-138c67d
 #### Description
   my first Chip-8 interpreter
 #### KeyMap
-| Chip8 Keyboard  |  Converted Keyboard |
+| Converted Keyboard  |  Chip8 |
 |-----------------|---------------------|
 | 1 2 3 4         |  1 2 3 C            |
 | Q W E R         |  4 5 6 D            |
