@@ -16,7 +16,7 @@ if you clone this repo using --recursive flag roms folder will be created
 with roms found at https://github.com/kripod/chip8-roms
 
 #### Super Chip 48
-  **At the moment there is no support for Super chip-48 instructions,there for some roms will not run well**
+  **At the moment there is no support for Super chip-48 instructions,then some roms will not run well**
   
 #### Clone
   **Warning**:This repositories uses git submodules then clone using --recursive flag
