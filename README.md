@@ -1,7 +1,19 @@
 ## Cp8
 https://github.com/Chipskein/cp8/assets/47486707/dff47cd7-9e65-481c-9a53-138c67da7a66
 #### Description
-  Chip8 interpreter/emulator/Virtual Machine written in go 
+  Chip8 interpreter/emulator/Virtual Machine written in go
+#### KeyMap
+| Chip8 Keyboard  |  Converted Keyboard |
+|-----------------|---------------------|
+| 1 2 3 4         |  1 2 3 C            |
+| Q W E R         |  4 5 6 D            |
+| A S D F         |  7 8 9 E            |
+| Z X C V         |  A 0 B F            |
+| Esc             |  Close the window   |
+
+#### ROMS
+if you clone this repo using --recursive flag roms folder will be created
+with roms found at https://github.com/kripod/chip8-roms
   
 #### Clone
   **Warning**:This repositories uses git submodules then clone using --recursive flag
