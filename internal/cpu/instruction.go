@@ -1,8 +1,8 @@
 package cpu
 
 import (
-	"chip8/config"
-	"chip8/internal/utils"
+	"cp8/config"
+	"cp8/internal/utils"
 	"fmt"
 	"math/rand"
 )

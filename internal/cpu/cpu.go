@@ -1,7 +1,7 @@
 package cpu
 
 import (
-	"chip8/config"
+	"cp8/config"
 	"fmt"
 	"os"
 )

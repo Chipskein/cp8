@@ -1,8 +1,8 @@
 package keyboard
 
 import (
-	"chip8/config"
-	"chip8/internal/cpu"
+	"cp8/config"
+	"cp8/internal/cpu"
 	"fmt"
 	"os"
 
